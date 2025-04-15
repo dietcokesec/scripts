@@ -89,7 +89,11 @@ def check_license(url, component):
         "/administrator/components/" + component + "/LICENSE.txt",
         "/administrator/components/" + component + "/license.txt",
         "/components/" + component + "/" + component[4:] + ".xml",
-        "/administrator/components/" + component + "/" + component[4:] + ".xml",
+        "/administrator/components/"
+        + component
+        + "/"
+        + component[4:]
+        + ".xml",
     ]
     check_and_print(url, component, paths, "LICENSE")
 
@@ -361,7 +365,3 @@ def main(argv):
 
     else:
         print("Site Down, check url please...")
-
-
-if __name__ == "__main__":
-    main(sys.argv[1:])
