@@ -1,47 +1,25 @@
-#!/usr/bin/python
-import argparse
-import sys
-import threading
-import time
+import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
+import rich
 from bs4 import BeautifulSoup
+from rich.progress import track
 
-dbarray = []
-url = ""
-useragentdesktop = {
+from joom3y.components import COMPONENTS
+
+USER_AGENT = {
     "User-Agent": "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0)",
     "Accept-Language": "it",
 }
-timeoutconnection = 5
-pool = None
-swversion = "0.5beta"
-
-
-def hello():
-    print("-------------------------------------------")
-    print("      	     Joomla Scan                  ")
-    print("   Usage: python joomlascan.py <target>    ")
-    print(
-        "    Version " + swversion + " - Database Entries " + str(len(dbarray))
-    )
-    print("         created by Andrea Draghetti       ")
-    print("-------------------------------------------")
-
-
-def load_component():
-    with open("comptotestdb.txt", "r") as f:
-        for line in f:
-            dbarray.append(line[:-1]) if line[-1] == "\n" else dbarray.append(
-                line
-            )
+REQUEST_TIMEOUT = 5
 
 
 def check_url(url, path="/"):
     fullurl = url + path
     try:
         conn = requests.get(
-            fullurl, headers=useragentdesktop, timeout=timeoutconnection
+            fullurl, headers=USER_AGENT, timeout=REQUEST_TIMEOUT
         )
         if conn.headers["content-length"] != "0":
             return conn.status_code
@@ -55,14 +33,14 @@ def check_url_head(url, path="/"):
     fullurl = url + path
     try:
         conn = requests.head(
-            fullurl, headers=useragentdesktop, timeout=timeoutconnection
+            fullurl, headers=USER_AGENT, timeout=REQUEST_TIMEOUT
         )
         return conn.headers["content-length"]
     except Exception:
         return None
 
 
-def check_and_print(url, component, paths, label):
+def check_and_print(url, paths, label):
     for path in paths:
         if check_url(url, path) == 200:
             print(f"\t {label} file found \t > {url}{path}")
@@ -79,7 +57,7 @@ def check_readme(url, component):
         "/administrator/components/" + component + "/README.md",
         "/administrator/components/" + component + "/readme.md",
     ]
-    check_and_print(url, component, paths, "README")
+    check_and_print(url, paths, "README")
 
 
 def check_license(url, component):
@@ -95,7 +73,7 @@ def check_license(url, component):
         + component[4:]
         + ".xml",
     ]
-    check_and_print(url, component, paths, "LICENSE")
+    check_and_print(url, paths, "LICENSE")
 
 
 def check_changelog(url, component):
@@ -105,7 +83,7 @@ def check_changelog(url, component):
         "/administrator/components/" + component + "/CHANGELOG.txt",
         "/administrator/components/" + component + "/changelog.txt",
     ]
-    check_and_print(url, component, paths, "CHANGELOG")
+    check_and_print(url, paths, "CHANGELOG")
 
 
 def check_mainfest(url, component):
@@ -115,7 +93,7 @@ def check_mainfest(url, component):
         "/administrator/components/" + component + "/MANIFEST.xml",
         "/administrator/components/" + component + "/manifest.xml",
     ]
-    check_and_print(url, component, paths, "MANIFEST")
+    check_and_print(url, paths, "MANIFEST")
 
 
 def check_index(url, component):
@@ -134,7 +112,7 @@ def index_of(url, path="/"):
     fullurl = url + path
     try:
         page = requests.get(
-            fullurl, headers=useragentdesktop, timeout=timeoutconnection
+            fullurl, headers=USER_AGENT, timeout=REQUEST_TIMEOUT
         )
         soup = BeautifulSoup(page.text, "html.parser")
         if soup.title:
@@ -145,7 +123,7 @@ def index_of(url, path="/"):
                 return False
         else:
             return False
-    except:
+    except Exception as _:
         return False
 
 
@@ -161,13 +139,9 @@ def scanner(url, component):
         )
 
         check_readme(url, component)
-
         check_license(url, component)
-
         check_changelog(url, component)
-
         check_mainfest(url, component)
-
         check_index(url, component)
 
         if index_of(url, "/components/" + component + "/"):
@@ -200,13 +174,9 @@ def scanner(url, component):
         print("\t But possibly it is not active or protected")
 
         check_readme(url, component)
-
         check_license(url, component)
-
         check_changelog(url, component)
-
         check_mainfest(url, component)
-
         check_index(url, component)
 
         if index_of(url, "/components/" + component + "/"):
@@ -239,13 +209,9 @@ def scanner(url, component):
         print("\t On the administrator components")
 
         check_readme(url, component)
-
         check_license(url, component)
-
         check_changelog(url, component)
-
         check_mainfest(url, component)
-
         check_index(url, component)
 
         if index_of(url, "/administrator/components/" + component + "/"):
@@ -266,70 +232,16 @@ def scanner(url, component):
                 + "/"
             )
 
-    pool.release()
 
+def scan(url: str, threads: int = os.cpu_count()):
+    if not url.startswith("http://") and not url.startswith("https://"):
+        rich.print(f"[red] url {url} must have a scheme.")
+        exit(1)
 
-def main(argv):
-    # Carico il database di tutti i compomenti di Joomla
-    load_component()
+    # Remove the ending to the url
+    if url.endswith("/"):
+        url = url[:-1]
 
-    # Visualizzo il banner di benvenuto
-    hello()
-
-    # Analizzo gli argomenti passati sul terminale
-    try:
-        parser = argparse.ArgumentParser()
-        parser.add_argument(
-            "-u",
-            "--url",
-            action="store",
-            dest="url",
-            help="The Joomla URL/domain to scan.",
-        )
-        parser.add_argument(
-            "-t",
-            "--threads",
-            action="store",
-            dest="threads",
-            help="The number of threads to use when multi-threading requests (default: 10).",
-        )
-        parser.add_argument(
-            "-v",
-            "--version",
-            action="version",
-            version="%(prog)s " + swversion,
-        )
-
-        arguments = parser.parse_args()
-    except:
-        sys.exit(1)
-
-    if arguments.url:
-        url = arguments.url
-        if url[:8] != "https://" and url[:7] != "http://":
-            print("You must insert http:// or https:// procotol\n")
-            sys.exit(1)
-
-        # Rimuovo un eventuale barra alla fine del url
-        if url.endswith("/"):
-            url = url[:-1]
-    else:
-        print("")
-        parser.parse_args(["-h"])
-        sys.exit(1)
-
-    concurrentthreads = 10
-    global pool
-    # Imposto il numero di thread concorrenti
-    if arguments.threads and arguments.threads.isdigit():
-        # Limit the number of threads.
-        concurrentthreads = int(arguments.threads)
-        pool = threading.BoundedSemaphore(concurrentthreads)
-    else:
-        # Default value for limit the number of threads.
-        pool = threading.BoundedSemaphore(concurrentthreads)
-
-    # Analizzo la disponibilita del sito indicato
     if check_url(url) != 404:
         if check_url(url, "/robots.txt") == 200:
             print("Robots file found: \t \t > " + url + "/robots.txt")
@@ -341,27 +253,32 @@ def main(argv):
         else:
             print("No Error Log found")
 
-        # Inizio la scansione dei componenti
+        # Check if the version is present
+        version_paths = [
+            "/administrator/manifests/files/joomla.xml",
+            "/README.txt",
+        ]
 
-        print("\nStart scan...with %d concurrent threads!" % concurrentthreads)
+        # Go through the versions and check
+        for version in version_paths:
+            # If it resolves, check the version
+            if check_url(url, version) == 200:
+                print(
+                    f"[green] Path {url + version} resolved, getting version strings"
+                )
+                page_content = requests.get(url + version).text
+                for line in page_content.split("\n"):
+                    if "version" in line.lower():
+                        print("\t", line)
 
-        for component in dbarray:
-            # Thread Pool
-            pool.acquire(blocking=True)
-
-            t = threading.Thread(
-                target=scanner,
-                args=(
-                    url,
-                    component,
-                ),
-            )
-            t.start()
-
-        while threading.active_count() > 1:
-            time.sleep(0.1)
-
-        print("End Scanner")
-
+        with ThreadPoolExecutor(max_workers=threads) as executor:
+            futures = [
+                executor.submit(scanner, url, component)
+                for component in COMPONENTS
+            ]
+            # Wrap as_completed with track to update the progress bar as tasks complete.
+            for future in track(as_completed(futures), total=len(futures)):
+                # Optionally, process result or catch exceptions here.
+                future.result()
     else:
-        print("Site Down, check url please...")
+        print("[red]The site appears to be down")
