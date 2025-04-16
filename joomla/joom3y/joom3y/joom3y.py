@@ -4,13 +4,13 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 import rich
 from bs4 import BeautifulSoup
+from rich import print
 from rich.progress import track
 
 from joom3y.components import COMPONENTS
 
 USER_AGENT = {
     "User-Agent": "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0)",
-    "Accept-Language": "it",
 }
 REQUEST_TIMEOUT = 5
 
@@ -43,7 +43,9 @@ def check_url_head(url, path="/"):
 def check_and_print(url, paths, label):
     for path in paths:
         if check_url(url, path) == 200:
-            print(f"\t {label} file found \t > {url}{path}")
+            print(
+                f"\t [green]{label}[/green] file found \t > [blue]{url}{path}[blue]"
+            )
 
 
 def check_readme(url, component):
@@ -146,7 +148,7 @@ def scanner(url, component):
 
         if index_of(url, "/components/" + component + "/"):
             print(
-                "\t Explorable Directory \t > "
+                "\t [green]Explorable Directory \t > "
                 + url
                 + "/components/"
                 + component
@@ -155,7 +157,7 @@ def scanner(url, component):
 
         if index_of(url, "/administrator/components/" + component + "/"):
             print(
-                "\t Explorable Directory \t > "
+                "\t [green]Explorable Directory \t > "
                 + url
                 + "/administrator/components/"
                 + component
@@ -164,7 +166,7 @@ def scanner(url, component):
 
     elif check_url(url, "/components/" + component + "/") == 200:
         print(
-            "Component found: "
+            "[green]Component found: "
             + component
             + "\t > "
             + url
@@ -181,7 +183,7 @@ def scanner(url, component):
 
         if index_of(url, "/components/" + component + "/"):
             print(
-                "\t Explorable Directory \t > "
+                "\t [green]Explorable Directory \t > "
                 + url
                 + "/components/"
                 + component
@@ -190,7 +192,7 @@ def scanner(url, component):
 
         if index_of(url, "/administrator/components/" + component + "/"):
             print(
-                "\t Explorable Directory \t > "
+                "\t [green]Explorable Directory \t > "
                 + url
                 + "/administrator/components/"
                 + component
@@ -199,7 +201,7 @@ def scanner(url, component):
 
     elif check_url(url, "/administrator/components/" + component + "/") == 200:
         print(
-            "Component found: "
+            "[green]Component found: "
             + component
             + "\t > "
             + url
@@ -216,7 +218,7 @@ def scanner(url, component):
 
         if index_of(url, "/administrator/components/" + component + "/"):
             print(
-                "\t Explorable Directory \t > "
+                "\t [green]Explorable Directory \t > "
                 + url
                 + "/components/"
                 + component
@@ -225,7 +227,7 @@ def scanner(url, component):
 
         if index_of(url, "/administrator/components/" + component + "/"):
             print(
-                "\t Explorable Directory \t > "
+                "\t [green]Explorable Directory \t > "
                 + url
                 + "/administrator/components/"
                 + component
@@ -244,14 +246,14 @@ def scan(url: str, threads: int = os.cpu_count()):
 
     if check_url(url) != 404:
         if check_url(url, "/robots.txt") == 200:
-            print("Robots file found: \t \t > " + url + "/robots.txt")
+            print("[blue]Robots file found: \t \t > " + url + "/robots.txt")
         else:
-            print("No Robots file found")
+            print("[red]No Robots file found")
 
         if check_url(url, "/error_log") == 200:
-            print("Error log found: \t \t > " + url + "/error_log")
+            print("[blue]Error log found: \t \t > " + url + "/error_log")
         else:
-            print("No Error Log found")
+            print("[red]No Error Log found")
 
         # Check if the version is present
         version_paths = [
@@ -264,13 +266,14 @@ def scan(url: str, threads: int = os.cpu_count()):
             # If it resolves, check the version
             if check_url(url, version) == 200:
                 print(
-                    f"[green] Path {url + version} resolved, getting version strings"
+                    f"[green] Path {url + version} resolved, getting version string"
                 )
                 page_content = requests.get(url + version).text
                 for line in page_content.split("\n"):
                     if "version" in line.lower():
                         print("\t", line)
 
+        print("[green] Initiating component scans")
         with ThreadPoolExecutor(max_workers=threads) as executor:
             futures = [
                 executor.submit(scanner, url, component)

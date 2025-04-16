@@ -1,5 +1,5 @@
 # Joomla Scan
-A free and open source software to find the components installed in Joomla CMS, built out of the ashes of Joomscan.
+A free and open source software to find the components installed in Joomla CMS, built out of the ashes of Joomscan and Joomla Scan. This project was borne out of a need for this tool to be easier to work with.
 
 # Features
 * Scanning the Joomla CMS sites in search of components/extensions (database of more than 600 components);
@@ -11,8 +11,6 @@ A free and open source software to find the components installed in Joomla CMS, 
 * Connection timeout
 
 # Next Features
-* Locate the version of Joomla CMS
-* Find Module
 * Customized User Agent and Random Agent
 * The user can change the connection timeout
 * A database of vulnerable components
@@ -24,7 +22,7 @@ usage: python joomlascan.py [-h] [-u URL] [-t THREADS] [-v]
 optional arguments:
 
     -h, --help              show this help message and exit
- 
+
     -u URL, --url URL       The Joomla URL/domain to scan.
     -t THREADS, --threads   THREADS
                             The number of threads to use when multi-threading
@@ -36,11 +34,12 @@ optional arguments:
 ![alt Screenshot 0.4b](http://cloud.draghetti.it/Rehost_Image/Joomla_Scan_0.4b.png)
 
 # Requirements
+We *strongly* recommend using `uv` as it is fast and more modern. It'll automatically resolve the dependencies for you.
 * Python
-* beautifulsoup4 (To install this library from terminal type: $ sudo easy_install beautifulsoup4 or $ sudo pip install beautifulsoup4)
+* beautifulsoup4
 
 # Changelog
-
+* 2025.15.05 0.6beta > Bring the codebase to python3, remove the broken check call in the index path. Revive from the dead.
 * 2016.12.12 0.5beta > Implementation of the Multi Thread, Updated database from 656 to 686 components, Fix Cosmetics and Minor Fix.
 * 2016.05.20 0.4beta > Find README.md, Find Manifes.xml, Find Index file of Components (Only if descriptive), User Agent and TimeOut on Python Request, Updated database from 587 to 656 components, Fix Cosmetics and Minor Fix.
 * 2016.03.18 0.3beta > Find index file on components directory
@@ -50,3 +49,5 @@ optional arguments:
 # License
 GNU, version 3
 
+
+*This work has been sponsored by [Sythe Labs](https://sythelabs.com).*
