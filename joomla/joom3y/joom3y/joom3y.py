@@ -10,7 +10,9 @@ from rich.progress import track
 from joom3y.components import COMPONENTS
 
 REQUEST_TIMEOUT = 5
-USER_AGENT = "User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0"
+USER_AGENT = {
+    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0"
+}
 
 
 def check_url(url: str, path: str = "/"):
@@ -238,7 +240,7 @@ def scan(
     url: str, user_agent: str, timeout: int = 5, threads: int = os.cpu_count()
 ):
     global USER_AGENT, REQUEST_TIMEOUT
-    USER_AGENT = user_agent
+    USER_AGENT = {"User-Agent": user_agent}
     REQUEST_TIMEOUT = timeout
 
     if not url.startswith("http://") and not url.startswith("https://"):
@@ -288,5 +290,3 @@ def scan(
         #     for future in track(as_completed(futures), total=len(futures)):
         #         # Optionally, process result or catch exceptions here.
         #         future.result()
-    else:
-        print("[red]The site appears to be down")
