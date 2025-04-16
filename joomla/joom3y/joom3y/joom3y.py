@@ -280,13 +280,13 @@ def scan(
                     if "version" in line.lower():
                         print("\t", line)
 
-        # print("[green] Initiating component scans")
-        # with ThreadPoolExecutor(max_workers=threads) as executor:
-        #     futures = [
-        #         executor.submit(scanner, url, component)
-        #         for component in COMPONENTS
-        #     ]
-        #     # Wrap as_completed with track to update the progress bar as tasks complete.
-        #     for future in track(as_completed(futures), total=len(futures)):
-        #         # Optionally, process result or catch exceptions here.
-        #         future.result()
+        print("[green] Initiating component scans")
+        with ThreadPoolExecutor(max_workers=threads) as executor:
+            futures = [
+                executor.submit(scanner, url, component)
+                for component in COMPONENTS
+            ]
+            # Wrap as_completed with track to update the progress bar as tasks complete.
+            for future in track(as_completed(futures), total=len(futures)):
+                # Optionally, process result or catch exceptions here.
+                future.result()
