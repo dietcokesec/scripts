@@ -31,7 +31,7 @@ optional arguments:
 
 # Screenshot
 
-![alt Screenshot 0.4b](http://cloud.draghetti.it/Rehost_Image/Joomla_Scan_0.4b.png)
+![alt Screenshot 0.6b](action.png)
 
 # Requirements
 We *strongly* recommend using `uv` as it is fast and more modern. It'll automatically resolve the dependencies for you.
