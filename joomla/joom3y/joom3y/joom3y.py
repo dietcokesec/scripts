@@ -9,27 +9,22 @@ from rich.progress import track
 
 from joom3y.components import COMPONENTS
 
-USER_AGENT = {
-    "User-Agent": "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0)",
-}
 REQUEST_TIMEOUT = 5
+USER_AGENT = "User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0"
 
 
-def check_url(url, path="/"):
+def check_url(url: str, path: str = "/"):
     fullurl = url + path
     try:
         conn = requests.get(
             fullurl, headers=USER_AGENT, timeout=REQUEST_TIMEOUT
         )
-        if conn.headers["content-length"] != "0":
-            return conn.status_code
-        else:
-            return 404
+        return conn.status_code
     except Exception:
         return None
 
 
-def check_url_head(url, path="/"):
+def get_content_length(url: str, path: str = "/"):
     fullurl = url + path
     try:
         conn = requests.head(
@@ -37,7 +32,7 @@ def check_url_head(url, path="/"):
         )
         return conn.headers["content-length"]
     except Exception:
-        return None
+        return -1
 
 
 def check_and_print(url, paths, label):
@@ -106,7 +101,10 @@ def check_index(url, component):
         "/administrator/components/" + component + "/INDEX.html",
     ]
     for path in paths:
-        if check_url(url, path) == 200 and check_url_head(url, path) > 1000:
+        if (
+            check_url(url, path) == 200
+            and get_content_length(url, path) > 1000
+        ):
             print(f"\t INDEX file descriptive found \t > {url}{path}")
 
 
@@ -129,7 +127,7 @@ def index_of(url, path="/"):
         return False
 
 
-def scanner(url, component):
+def scanner(url: str, component: str):
     if check_url(url, "/index.php?option=" + component) == 200:
         print(
             "Component found: "
@@ -235,7 +233,13 @@ def scanner(url, component):
             )
 
 
-def scan(url: str, threads: int = os.cpu_count()):
+def scan(
+    url: str, user_agent: str, timeout: int = 5, threads: int = os.cpu_count()
+):
+    global USER_AGENT, REQUEST_TIMEOUT
+    USER_AGENT = user_agent
+    REQUEST_TIMEOUT = timeout
+
     if not url.startswith("http://") and not url.startswith("https://"):
         rich.print(f"[red] url {url} must have a scheme.")
         exit(1)
@@ -244,7 +248,7 @@ def scan(url: str, threads: int = os.cpu_count()):
     if url.endswith("/"):
         url = url[:-1]
 
-    if check_url(url) != 404:
+    if check_url(url):
         if check_url(url, "/robots.txt") == 200:
             print("[blue]Robots file found: \t \t > " + url + "/robots.txt")
         else:
@@ -273,15 +277,15 @@ def scan(url: str, threads: int = os.cpu_count()):
                     if "version" in line.lower():
                         print("\t", line)
 
-        print("[green] Initiating component scans")
-        with ThreadPoolExecutor(max_workers=threads) as executor:
-            futures = [
-                executor.submit(scanner, url, component)
-                for component in COMPONENTS
-            ]
-            # Wrap as_completed with track to update the progress bar as tasks complete.
-            for future in track(as_completed(futures), total=len(futures)):
-                # Optionally, process result or catch exceptions here.
-                future.result()
+        # print("[green] Initiating component scans")
+        # with ThreadPoolExecutor(max_workers=threads) as executor:
+        #     futures = [
+        #         executor.submit(scanner, url, component)
+        #         for component in COMPONENTS
+        #     ]
+        #     # Wrap as_completed with track to update the progress bar as tasks complete.
+        #     for future in track(as_completed(futures), total=len(futures)):
+        #         # Optionally, process result or catch exceptions here.
+        #         future.result()
     else:
         print("[red]The site appears to be down")
