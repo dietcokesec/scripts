@@ -1,5 +1,5 @@
 # Joomla Scan
-A free and open source software to find the components installed in Joomla CMS, built out of the ashes of Joomscan and Joomla Scan. This project was borne out of a need for this tool to be easier to work with.
+A free and open source software to find the components installed in Joomla CMS, built out of the ashes of Joomscan and Joomla Scan. This project is a fork of Joomla Scan by drego85 on github. It was modernized and improved considerably.
 
 # Features
 * Scanning the Joomla CMS sites in search of components/extensions (database of more than 600 components);
@@ -16,18 +16,23 @@ A free and open source software to find the components installed in Joomla CMS, 
 * A database of vulnerable components
 
 # Usage
+```
+ Usage: main.py [OPTIONS]
 
-usage: python joomlascan.py [-h] [-u URL] [-t THREADS] [-v]
-
-optional arguments:
-
-    -h, --help              show this help message and exit
-
-    -u URL, --url URL       The Joomla URL/domain to scan.
-    -t THREADS, --threads   THREADS
-                            The number of threads to use when multi-threading
-                            requests (default: 10).
-    -v, --version           show program's version number and exit
+╭─ Options ──────────────────────────────────────────────────────────────────────────────╮
+│ *  --url                 -u      TEXT     The Joomla URL to scan. [default: None]      │
+│                                           [required]                                   │
+│    --threads             -t      INTEGER  Number of threads to use. [default: 10]      │
+│    --user-agent          -a      TEXT     The user agent to use. [default: None]       │
+│    --timeout             -T      INTEGER  The timeout before moving on with an http    │
+│                                           request to joomla.                           │
+│                                           [default: 5]                                 │
+│    --install-completion                   Install completion for the current shell.    │
+│    --show-completion                      Show completion for the current shell, to    │
+│                                           copy it or customize the installation.       │
+│    --help                                 Show this message and exit.                  │
+╰────────────────────────────────────────────────────────────────────────────────────────╯
+```
 
 # Screenshot
 
