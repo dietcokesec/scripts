@@ -20,7 +20,8 @@ def check_url(url: str, path: str = "/"):
             fullurl, headers=USER_AGENT, timeout=REQUEST_TIMEOUT
         )
         return conn.status_code
-    except Exception:
+    except Exception as e:
+        print(f"[red]error {e}")
         return None
 
 
